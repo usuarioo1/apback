@@ -1,11 +1,36 @@
-import express from 'express'
-import cors from 'cors'
+const express = require('express');
+const cors = require('cors');
+const bdconection = require('./config/database')
+const dotenv = require('dotenv');
+const arosRoute = require('./routes/arosRoute');
+const colgantesRoute = require('./routes/colganesRoute');
+const pulserasRoute = require('./routes/pulserasRoute');
+const collaresRoute = require('./routes/collaresRoute');
+const figurasRoute = require('./routes/figurasRoute');
+const anillosRoute = require('./routes/anillosRoute');
+const conjuntosRoute = require('./routes/conjuntosRoute');
 
+// instacioamiento de express
 const app = express();
 
+
+// instaciamiento de utilidades
 app.use(cors());
-app.use(express.json())
+app.use(express.json());
+dotenv.config();
+// coneccion a la base de datos
+bdconection();
+// rutas 
+app.use(arosRoute);
+app.use(colgantesRoute)
+app.use(pulserasRoute)
+app.use(collaresRoute)
+app.use(figurasRoute)
+app.use(anillosRoute)
+app.use(conjuntosRoute)
+
+// coneccion al puerto
 
 app.listen(3000, () => {
-    console.log('se conecto el puerto')
-})
+    console.log('se conecto el puerto');
+});
