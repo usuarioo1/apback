@@ -1,78 +1,110 @@
-const Order = require('../models/orderSchema');
+const Order = require('../models/orderSchema')
 
-// Crear una nueva orden
-const createOrder = async (req, res) => {
+// Controlador para guardar una nueva orden
+const saveOrder = async (req, res) => {
+    const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total } = req.body;
+
     try {
-        const { userId, items, totalPrice } = req.body;
-
-        // Validar que el usuario y los items existen
-        if (!userId || !items || !totalPrice) {
-            return res.status(400).json({ success: false, message: 'Faltan datos en la solicitud' });
-        }
-
+        // Crear nueva orden
         const newOrder = new Order({
-            userId,
-            items,
-            totalPrice
+            nombre,
+            email,
+            telefono,
+            rut,
+            region,
+            direccion,
+            referencia,
+            cartItems,
+            total
         });
 
+        // Guardar en la base de datos
         await newOrder.save();
-        res.status(201).json({ success: true, message: 'Orden creada', info: newOrder });
+
+        res.status(200).json({ message: 'Orden guardada exitosamente', order: newOrder });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al crear la orden' });
-        console.error(error);
+        console.error('Error al guardar la orden:', error);
+        res.status(500).json({ error: 'Error al guardar la orden' });
     }
 };
 
-// Obtener todas las órdenes
-const getOrders = async (req, res) => {
+// Controlador para obtener todas las órdenes
+const getAllOrders = async (req, res) => {
     try {
-        const orders = await Order.find().populate('userId').populate('items.productId');
-        res.json({ success: true, message: 'Lista de órdenes', info: orders });
+        const orders = await Order.find();
+        res.status(200).json({message:'ordenes',
+            info:orders
+        } );
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al obtener órdenes' });
-        console.error(error);
+        console.error('Error al obtener las órdenes:', error);
+        res.status(500).json({ error: 'Error al obtener las órdenes' });
     }
 };
 
-// Obtener una orden por ID
+// Controlador para obtener una orden por ID
 const getOrderById = async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const { id } = req.params;
-        const order = await Order.findById(id).populate('userId').populate('items.productId');
+        const order = await Order.findById(id);
         if (!order) {
-            return res.status(404).json({ success: false, message: 'Orden no encontrada' });
+            return res.status(404).json({ message: 'Orden no encontrada' });
         }
-        res.json({ success: true, message: 'Orden encontrada', info: order });
+        res.status(200).json(order);
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al obtener la orden' });
-        console.error(error);
+        console.error('Error al obtener la orden:', error);
+        res.status(500).json({ error: 'Error al obtener la orden' });
     }
 };
 
-// Actualizar el estado de una orden
-const updateOrderStatus = async (req, res) => {
+// Controlador para actualizar una orden
+const updateOrder = async (req, res) => {
+    const { id } = req.params;
+    const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total } = req.body;
+
     try {
-        const { id } = req.params;
-        const { status } = req.body;
-        const updatedOrder = await Order.findByIdAndUpdate(id, { status, updatedAt: Date.now() }, { new: true });
-        res.json({ success: true, message: 'Orden actualizada', info: updatedOrder });
+        const updatedOrder = await Order.findByIdAndUpdate(id, {
+            nombre,
+            email,
+            telefono,
+            rut,
+            region,
+            direccion,
+            referencia,
+            cartItems,
+            total
+        }, { new: true });
+
+        if (!updatedOrder) {
+            return res.status(404).json({ message: 'Orden no encontrada' });
+        }
+        res.status(200).json({ message: 'Orden actualizada exitosamente', order: updatedOrder });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al actualizar la orden' });
-        console.error(error);
+        console.error('Error al actualizar la orden:', error);
+        res.status(500).json({ error: 'Error al actualizar la orden' });
     }
 };
 
-// Eliminar una orden
+// Controlador para eliminar una orden
 const deleteOrder = async (req, res) => {
+    const { id } = req.params;
+
     try {
-        const { id } = req.params;
-        await Order.findByIdAndDelete(id);
-        res.json({ success: true, message: 'Orden eliminada' });
+        const deletedOrder = await Order.findByIdAndDelete(id);
+        if (!deletedOrder) {
+            return res.status(404).json({ message: 'Orden no encontrada' });
+        }
+        res.status(200).json({ message: 'Orden eliminada exitosamente' });
     } catch (error) {
-        res.status(500).json({ success: false, message: 'Error al eliminar la orden' });
-        console.error(error);
+        console.error('Error al eliminar la orden:', error);
+        res.status(500).json({ error: 'Error al eliminar la orden' });
     }
 };
 
-module.exports = { createOrder, getOrders, getOrderById, updateOrderStatus, deleteOrder };
+module.exports = {
+    saveOrder,
+    getAllOrders,
+    getOrderById,
+    updateOrder,
+    deleteOrder
+};

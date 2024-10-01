@@ -1,15 +1,22 @@
 const express = require('express');
-const { createOrder, getOrders, getOrderById, updateOrderStatus, deleteOrder } = require('../controllers/orderController');
 
-const orderRoutes = express.Router();
+const { 
+    saveOrder, 
+    getAllOrders, 
+    getOrderById, 
+    updateOrder, 
+    deleteOrder 
+} = require('../controllers/orderController');
 
-orderRoutes.route('/orders')
-    .post(createOrder)        // Crear una nueva orden
-    .get(getOrders);          // Obtener todas las órdenes
+const orderRoute = express.Router();
 
-orderRoutes.route('/orders/:id')
-    .get(getOrderById)        // Obtener una orden por ID
-    .put(updateOrderStatus)   // Actualizar el estado de una orden
-    .delete(deleteOrder);     // Eliminar una orden
+orderRoute.route('/save_order')
+    .get(getAllOrders) // Obtener todas las órdenes
+    .post(saveOrder);  // Crear una nueva orden
 
-module.exports = orderRoutes;
+orderRoute.route('/orders/:id')
+    .get(getOrderById)  // Obtener una orden específica por ID
+    .put(updateOrder)    // Actualizar una orden específica por ID
+    .delete(deleteOrder); // Eliminar una orden específica por ID
+
+module.exports = orderRoute;
