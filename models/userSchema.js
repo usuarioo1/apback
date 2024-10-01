@@ -1,12 +1,17 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
+const { type } = require('os');
 
 const userSchema = new mongoose.Schema({
     username: { 
         type: String, 
         required: true, 
         unique: true 
+    },
+    name:{
+        type:String,
+        require:true,
     },
     email: { 
         type: String, 
@@ -21,8 +26,18 @@ const userSchema = new mongoose.Schema({
     name: { 
         type: String 
     },
+    region:{
+        type:String,
+        require:true
+    },
     address: { 
         type: String 
+    },
+    referencia:{
+        type:String
+    },
+    rut:{
+        type:String
     },
     phone: { 
         type: String 

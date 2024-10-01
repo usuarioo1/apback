@@ -9,9 +9,8 @@ const collaresRoute = require('./routes/collaresRoute');
 const figurasRoute = require('./routes/figurasRoute');
 const anillosRoute = require('./routes/anillosRoute');
 const conjuntosRoute = require('./routes/conjuntosRoute');
-const userRoute = require('./routes/userRoute,js');
+const userRoute = require('./routes/userRoute.js');
 const orderRoutes = require('./routes/orderRoute');
-const orderRoute = require('./routes/orderRoute');
 
 // instacioamiento de express
 const app = express();
@@ -33,7 +32,8 @@ app.use(anillosRoute)
 app.use(conjuntosRoute)
 app.use(userRoute)
 app.use(orderRoutes)
-app.use(orderRoute)
+app.use(contactoRoute)
+
 
 // coneccion al puerto
 
