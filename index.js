@@ -12,6 +12,7 @@ const conjuntosRoute = require('./routes/conjuntosRoute');
 const userRoute = require('./routes/userRoute');
 const contactoRoute = require('./routes/conjuntosRoute')
 const orderRoute = require('./routes/orderRoute');
+const mailRouter = require('./routes/mailRouter');
 
 // instacioamiento de express
 const app = express();
@@ -34,6 +35,7 @@ app.use(conjuntosRoute)
 app.use(userRoute)
 app.use(orderRoute)
 app.use(contactoRoute)
+app.use(mailRouter)
 
 
 // coneccion al puerto
