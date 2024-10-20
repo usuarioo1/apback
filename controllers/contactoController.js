@@ -30,9 +30,11 @@ const createContacto = async (req, res) => {
         await newContacto.save();
         res.status(201).json({ success: true, message: 'Contacto creado', info: newContacto });
     } catch (error) {
+        console.error('Error al crear el contacto:', error); // Agrega este log para obtener más información
         res.status(500).json({ success: false, message: error.message });
     }
-}
+};
+
 
 const updateContacto = async (req, res) => {
     try {
