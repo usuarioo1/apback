@@ -1,4 +1,11 @@
-const Order = require('../models/orderSchema')
+const Order = require('../models/orderSchema');
+const Anillos = require('../models/anillosSchema'); // Asegúrate de importar tu modelo de anillos
+const Aros = require('../models/arosSchema')
+const Colgantes = require('../models/colganteSchema')
+const Collares = require('../models/collaresSchema')
+const Conjuntos = require('../models/conjuntosSchema')
+const Figuras = require('../models/figurasSchema')
+const Pulseras = require('../models/pulserasSchema')
 
 // Controlador para guardar una nueva orden
 const saveOrder = async (req, res) => {
@@ -18,7 +25,121 @@ const saveOrder = async (req, res) => {
             total
         });
 
-        // Guardar en la base de datos
+        // Reducir el stock de los anillos en el carrito
+        // Procesar anillos
+        for (const item of cartItems) {
+            const anillo = await Anillos.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (anillo) {
+                // Verificar que haya suficiente stock
+                if (anillo.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para el anillo ${anillo.name}` });
+                }
+
+                // Reducir el stock
+                anillo.stock -= item.quantity;
+                await anillo.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar aros
+        for (const item of cartItems) {
+            const aro = await Aros.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (aro) {
+                // Verificar que haya suficiente stock
+                if (aro.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para el aro ${aro.name}` });
+                }
+
+                // Reducir el stock
+                aro.stock -= item.quantity;
+                await aro.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar colgantes
+        for (const item of cartItems) {
+            const colgante = await Colgantes.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (colgante) {
+                // Verificar que haya suficiente stock
+                if (colgante.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para el colgante ${colgante.name}` });
+                }
+
+                // Reducir el stock
+                colgante.stock -= item.quantity;
+                await colgante.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar collares
+        for (const item of cartItems) {
+            const collar = await Collares.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (collar) {
+                // Verificar que haya suficiente stock
+                if (collar.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para el collar ${collar.name}` });
+                }
+
+                // Reducir el stock
+                collar.stock -= item.quantity;
+                await collar.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar conjuntos
+        for (const item of cartItems) {
+            const conjunto = await Conjuntos.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (conjunto) {
+                // Verificar que haya suficiente stock
+                if (conjunto.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para el conjunto ${conjunto.name}` });
+                }
+
+                // Reducir el stock
+                conjunto.stock -= item.quantity;
+                await conjunto.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar figuras
+        for (const item of cartItems) {
+            const figura = await Figuras.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (figura) {
+                // Verificar que haya suficiente stock
+                if (figura.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para la figura ${figura.name}` });
+                }
+
+                // Reducir el stock
+                figura.stock -= item.quantity;
+                await figura.save(); // Guardar el nuevo stock
+            }
+        }
+
+        // Procesar pulseras
+        for (const item of cartItems) {
+            const pulsera = await Pulseras.findById(item._id); // Suponiendo que cada item tiene _id y quantity
+
+            if (pulsera) {
+                // Verificar que haya suficiente stock
+                if (pulsera.stock < item.quantity) {
+                    return res.status(400).json({ error: `No hay suficiente stock para la pulsera ${pulsera.name}` });
+                }
+
+                // Reducir el stock
+                pulsera.stock -= item.quantity;
+                await pulsera.save(); // Guardar el nuevo stock
+            }
+        }
+
+
+        // Guardar la nueva orden en la base de datos
         await newOrder.save();
 
         res.status(200).json({ message: 'Orden guardada exitosamente', order: newOrder });
@@ -32,9 +153,10 @@ const saveOrder = async (req, res) => {
 const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find();
-        res.status(200).json({message:'ordenes',
-            info:orders
-        } );
+        res.status(200).json({
+            message: 'Órdenes',
+            info: orders
+        });
     } catch (error) {
         console.error('Error al obtener las órdenes:', error);
         res.status(500).json({ error: 'Error al obtener las órdenes' });

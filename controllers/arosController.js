@@ -54,4 +54,20 @@ const deleteAro = async (req, res) => {
     }
 }
 
-module.exports = { getAros, getAroById, createAro, updateAro, deleteAro };
+const reduceStock = async (req, res) => {
+    const arosPurchased = req.body.cartItems;
+
+    try {
+        arosPurchased.map(async (aro) => {
+            await Aros.findByIdAndUpdate(aro._id, { stock: aro.stock - aro.quantity });
+        });
+        res.status(201).json({ success: true, message: 'se ha reducido el stock' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            success: false, message: error.message
+        });
+    }
+}
+
+module.exports = { getAros, getAroById, createAro, updateAro, deleteAro, reduceStock };
