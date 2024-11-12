@@ -13,6 +13,7 @@ const userRoute = require('./routes/userRoute');
 const orderRoute = require('./routes/orderRoute');
 const mailRouter = require('./routes/mailRouter');
 const contactoRoute = require('./routes/contactoRoute');
+const cadenasRoute = require('./routes/cadenasRoute');
 
 // instacioamiento de express
 const app = express();
@@ -36,6 +37,7 @@ app.use(userRoute)
 app.use(orderRoute)
 app.use(mailRouter)
 app.use(contactoRoute)
+app.use(cadenasRoute)
 
 
 // coneccion al puerto
