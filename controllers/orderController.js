@@ -10,7 +10,7 @@ const Cadenas = require('../models/cadenasSchema')
 
 // Controlador para guardar una nueva orden
 const saveOrder = async (req, res) => {
-    const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total } = req.body;
+    const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total, costoEnvio } = req.body;
 
     try {
         // Crear nueva orden
