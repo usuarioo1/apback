@@ -6,6 +6,7 @@ const Collares = require('../models/collaresSchema')
 const Conjuntos = require('../models/conjuntosSchema')
 const Figuras = require('../models/figurasSchema')
 const Pulseras = require('../models/pulserasSchema')
+const Cadenas = require('../models/cadenasSchema')
 
 // Controlador para guardar una nueva orden
 const saveOrder = async (req, res) => {
@@ -33,7 +34,7 @@ const saveOrder = async (req, res) => {
             if (anillo) {
                 // Verificar que haya suficiente stock
                 if (anillo.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para el anillo ${anillo.name}` });
+                    return res.status(400).json({ error: `No hay suficiente stock para la oferta ${anillo.name}` });
                 }
 
                 // Reducir el stock
@@ -135,6 +136,22 @@ const saveOrder = async (req, res) => {
                 // Reducir el stock
                 pulsera.stock -= item.quantity;
                 await pulsera.save(); // Guardar el nuevo stock
+            }
+        }
+
+        //procesar cadenas
+
+        for(const item of cartItems){
+            const cadena = await Cadenas.findById(item._id);
+
+            if(cadena){
+                if(cadena.stock < item.quantity){
+                    return res.status(400).json({error: `no hay suficiente stock para cadena ${cadena.name}`})
+                }
+
+                //reduce stock
+                cadena.stock -= item.quantity;
+                await cadena.save();
             }
         }
 
