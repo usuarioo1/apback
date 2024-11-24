@@ -15,8 +15,9 @@ const orderSchema = new mongoose.Schema({
             precio: { type: Number, required: true }
         }
     ],
-    costoEnvio:{type: Number, require:true},
+    
     total: { type: Number, required: true },
+    costoEnvio:{type: Number, require:true},
     date: { type: Date, default: Date.now }
 });
 

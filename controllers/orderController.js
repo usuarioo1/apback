@@ -23,7 +23,8 @@ const saveOrder = async (req, res) => {
             direccion,
             referencia,
             cartItems,
-            total
+            total,
+            costoEnvio
         });
 
         // Reducir el stock de los anillos en el carrito
