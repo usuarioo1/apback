@@ -15,6 +15,8 @@ const mailRouter = require('./routes/mailRouter');
 const contactoRoute = require('./routes/contactoRoute');
 const cadenasRoute = require('./routes/cadenasRoute');
 const accesoriosRoute = require('./routes/accesoriosRoute');
+const puntoDeVentaRoute = require('./routes/productosPuntoDeVentaRoute');
+const ventaRouter = require('./routes/ventaRoute');
 
 // instacioamiento de express
 const app = express();
@@ -40,6 +42,8 @@ app.use(mailRouter)
 app.use(contactoRoute)
 app.use(cadenasRoute)
 app.use(accesoriosRoute)
+app.use(puntoDeVentaRoute)
+app.use(ventaRouter)
 
 
 // coneccion al puerto
