@@ -3,7 +3,7 @@ const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
 // Crear un nuevo producto
 const crearProductoPuntoDeVenta = async (req, res) => {
     try {
-        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, imagen } = req.body;
+        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen } = req.body;
 
         const nuevoProducto = new ProductoPuntoDeVenta({
             nombre,
@@ -18,6 +18,7 @@ const crearProductoPuntoDeVenta = async (req, res) => {
             importado,
             tipo_de_joya,
             codigo_de_barras: codigo_de_barras, // Asegúrate de que el nombre coincida con el esquema
+            stock,
             imagen
         });
 
@@ -57,7 +58,7 @@ const actualizarProductoPuntoDeVenta = async (req, res) => {
 
         const productoActualizado = await ProductoPuntoDeVenta.findByIdAndUpdate(
             req.params.id,
-            { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras: codigo_de_barras, imagen },
+            { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras: codigo_de_barras, stock, imagen },
             { new: true }
         );
 
