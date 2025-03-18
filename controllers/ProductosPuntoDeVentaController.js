@@ -3,7 +3,7 @@ const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
 // Crear un nuevo producto
 const crearProductoPuntoDeVenta = async (req, res) => {
     try {
-        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen } = req.body;
+        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen, caja } = req.body;
 
         const nuevoProducto = new ProductoPuntoDeVenta({
             nombre,
@@ -19,7 +19,8 @@ const crearProductoPuntoDeVenta = async (req, res) => {
             tipo_de_joya,
             codigo_de_barras: codigo_de_barras, // Asegúrate de que el nombre coincida con el esquema
             stock,
-            imagen
+            imagen,
+            caja
         });
 
         await nuevoProducto.save();
@@ -54,11 +55,11 @@ const obtenerProductoPuntoDeVentaPorId = async (req, res) => {
 // Actualizar un producto
 const actualizarProductoPuntoDeVenta = async (req, res) => {
     try {
-        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, imagen } = req.body;
+        const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, imagen,caja } = req.body;
 
         const productoActualizado = await ProductoPuntoDeVenta.findByIdAndUpdate(
             req.params.id,
-            { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras: codigo_de_barras, stock, imagen },
+            { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras: codigo_de_barras, stock, imagen, caja },
             { new: true }
         );
 
