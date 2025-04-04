@@ -1,4 +1,111 @@
 const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
+const cloudinary = require("../config/cloudinary")
+const multer = require("multer");
+const fs = require("fs");
+
+
+// Configurar multer para almacenamiento temporal
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+      const uploadDir = path.join(__dirname, '../temp/uploads');
+      // Asegurarse de que el directorio existe
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+      cb(null, file.originalname);
+    }
+  });
+  
+  const upload = multer({ storage }).array('images', 50);
+  
+  // Función para manejar la carga masiva de imágenes
+  const cargarImagenesMasiva = async (req, res) => {
+    // Usar multer para procesar los archivos
+    upload(req, res, async function(err) {
+      if (err instanceof multer.MulterError) {
+        return res.status(400).json({ 
+          error: "Error al cargar archivos", 
+          detalle: err.message 
+        });
+      } else if (err) {
+        return res.status(500).json({ 
+          error: "Error en el servidor", 
+          detalle: err.message 
+        });
+      }
+  
+      // Si no hay archivos
+      if (!req.files || req.files.length === 0) {
+        return res.status(400).json({ 
+          error: "No se han cargado archivos" 
+        });
+      }
+  
+      const results = [];
+  
+      // Procesar cada archivo
+      for (const file of req.files) {
+        try {
+          // Extraer código de barras del nombre del archivo
+          const codigoBarras = file.originalname.split('.')[0];
+          
+          // Buscar el producto por código de barras
+          const producto = await ProductoPuntoDeVenta.findOne({ 
+            codigo_de_barras: codigoBarras 
+          });
+          
+          if (!producto) {
+            results.push({
+              filename: file.originalname,
+              success: false,
+              error: `Producto con código de barras ${codigoBarras} no encontrado`
+            });
+            continue;
+          }
+          
+          // Subir imagen a Cloudinary
+          const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
+            folder: 'productos_punto_venta',
+            public_id: codigoBarras
+          });
+          
+          // Actualizar producto con la URL de la imagen
+          producto.imagen = cloudinaryResult.secure_url;
+          await producto.save();
+          
+          // Eliminar archivo temporal
+          fs.unlinkSync(file.path);
+          
+          results.push({
+            filename: file.originalname,
+            success: true,
+            productName: producto.nombre,
+            imageUrl: cloudinaryResult.secure_url
+          });
+        } catch (error) {
+          console.error(`Error al procesar archivo ${file.originalname}:`, error);
+          results.push({
+            filename: file.originalname,
+            success: false,
+            error: error.message
+          });
+          
+          // Intentar eliminar el archivo temporal si existe
+          if (file.path && fs.existsSync(file.path)) {
+            fs.unlinkSync(file.path);
+          }
+        }
+      }
+      
+      res.status(200).json({ 
+        message: "Proceso de carga completado", 
+        results 
+      });
+    });
+  };
 
 // Crear un nuevo producto
 const crearProductoPuntoDeVenta = async (req, res) => {
@@ -110,5 +217,6 @@ module.exports = {
     obtenerProductoPuntoDeVentaPorId,
     actualizarProductoPuntoDeVenta,
     eliminarProductoPuntoDeVenta,
-    reducirStockProductoPuntoDeVenta
+    reducirStockProductoPuntoDeVenta,
+    cargarImagenesMasiva
 };
