@@ -2,6 +2,7 @@ const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
 const cloudinary = require("../config/cloudinary")
 const multer = require("multer");
 const fs = require("fs");
+const path = require("path");
 
 
 // Configurar multer para almacenamiento temporal
