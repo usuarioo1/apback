@@ -8,28 +8,36 @@ const {
     eliminarProductoPuntoDeVenta,
     reducirStockProductoPuntoDeVenta,
     cargarImagenesMasiva,
-    subirImagenProducto
+    subirImagenProducto,
+    descontarStockMasivo
 } = require('../controllers/ProductosPuntoDeVentaController');
 
-// Rutas básicas CRUD
-ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta')
-    .get(obtenerProductosPuntoDeVenta)
-    .post(crearProductoPuntoDeVenta);
+// ✅ RUTAS ESPECÍFICAS PRIMERO (antes que las rutas con parámetros)
 
-ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id')
-    .get(obtenerProductoPuntoDeVentaPorId)
-    .put(actualizarProductoPuntoDeVenta)
-    .delete(eliminarProductoPuntoDeVenta);
-
-// Ruta para reducir stock
-ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id/reduceStock')
-    .put(reducirStockProductoPuntoDeVenta);
+// Ruta para descuento masivo de stock
+ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/descontarStockMasivo')
+    .put(descontarStockMasivo);
 
 // Ruta para carga masiva de imágenes
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/cargaMasiva/imagenes')
     .post(cargarImagenesMasiva);
 
-// Nueva ruta para subir una imagen individual a un producto específico
+// ✅ RUTAS BÁSICAS CRUD
+ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta')
+    .get(obtenerProductosPuntoDeVenta)
+    .post(crearProductoPuntoDeVenta);
+
+// ✅ RUTAS CON PARÁMETROS AL FINAL (después de las rutas específicas)
+ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id')
+    .get(obtenerProductoPuntoDeVentaPorId)
+    .put(actualizarProductoPuntoDeVenta)
+    .delete(eliminarProductoPuntoDeVenta);
+
+// Ruta para reducir stock individual
+ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id/reduceStock')
+    .put(reducirStockProductoPuntoDeVenta);
+
+// Ruta para subir una imagen individual a un producto específico
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id/subirImagen')
     .post(subirImagenProducto);
 
