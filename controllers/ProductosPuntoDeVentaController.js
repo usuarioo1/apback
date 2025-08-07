@@ -290,6 +290,88 @@ const reducirStockProductoPuntoDeVenta = async (req, res) => {
     }
 };
 
+const descontarStockMasivo = async (req, res) => {
+    try {
+        const { productos } = req.body; // Array de { id, cantidad }
+        
+        if (!productos || !Array.isArray(productos) || productos.length === 0) {
+            return res.status(400).json({ 
+                error: "Se requiere un array de productos con id y cantidad" 
+            });
+        }
+
+        const resultados = [];
+        const errores = [];
+
+        // Procesar cada producto
+        for (const item of productos) {
+            try {
+                const { id, cantidad } = item;
+                
+                if (!id || !cantidad || cantidad <= 0) {
+                    errores.push({
+                        id: id || 'ID no proporcionado',
+                        error: 'ID o cantidad inválidos'
+                    });
+                    continue;
+                }
+
+                const producto = await ProductoPuntoDeVenta.findById(id);
+                
+                if (!producto) {
+                    errores.push({
+                        id,
+                        error: 'Producto no encontrado'
+                    });
+                    continue;
+                }
+
+                if (producto.stock < cantidad) {
+                    errores.push({
+                        id,
+                        nombre: producto.nombre,
+                        error: `Stock insuficiente. Stock actual: ${producto.stock}, cantidad solicitada: ${cantidad}`
+                    });
+                    continue;
+                }
+
+                // Actualizar stock
+                producto.stock -= cantidad;
+                await producto.save();
+
+                resultados.push({
+                    id,
+                    nombre: producto.nombre,
+                    cantidadDescontada: cantidad,
+                    stockAnterior: producto.stock + cantidad,
+                    stockActual: producto.stock
+                });
+
+            } catch (error) {
+                errores.push({
+                    id: item.id || 'ID no disponible',
+                    error: error.message
+                });
+            }
+        }
+
+        res.status(200).json({
+            mensaje: "Proceso de descuento de stock completado",
+            exitosos: resultados,
+            errores: errores,
+            totalProcesados: productos.length,
+            totalExitosos: resultados.length,
+            totalErrores: errores.length
+        });
+
+    } catch (error) {
+        res.status(500).json({ 
+            error: "Error al descontar stock masivo", 
+            detalle: error.message 
+        });
+    }
+};
+
 module.exports = {
     crearProductoPuntoDeVenta,
     obtenerProductosPuntoDeVenta,
@@ -298,5 +380,6 @@ module.exports = {
     eliminarProductoPuntoDeVenta,
     reducirStockProductoPuntoDeVenta,
     cargarImagenesMasiva,
-    subirImagenProducto
+    subirImagenProducto,
+    descontarStockMasivo
 };
