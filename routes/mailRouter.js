@@ -32,7 +32,7 @@ mailRouter.post('/send-tracking', (req, res) => {
                 <strong>${item.name}</strong> - Cantidad: ${item.quantity} - Precio: $${item.precio}
             </li>`).join('')}
         </ul>
-        <p style="font-size: 18px; font-weight: bold; color: #333;">Total: $${orderDetails.reduce((total, item) => total + (item.precio * item.quantity), 0).toFixed(2)}</p>
+        <p style="font-size: 18px; font-weight: bold; color: #333;">Total: $${orderDetails.reduce((total, item) => total + (item.precio * item.quantity), 0).toFixed(0)}</p>
     </div>
     <p style="font-size: 14px; text-align: center; color: #777;">Si tienes alguna pregunta, no dudes en contactarnos.</p>
   </div>
