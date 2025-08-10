@@ -69,23 +69,51 @@ const confirmOrderAndReduceStock = async (req, res) => {
 // ACTUALIZAR ORDEN DESDE WEBHOOK MP
 // =========================
 const updateOrderStatusFromMP = async (req, res) => {
-    const { mercadoPagoId, paymentStatus } = req.body;
+    const { orderId, mercadoPagoId, paymentStatus } = req.body;
 
     try {
-        const order = await Order.findOne({ mercadoPagoId });
-        if (!order) return res.status(404).json({ message: 'Orden no encontrada con ese mercadoPagoId' });
+        // Primero intentamos buscar por orderId (external_reference)
+        let order = await Order.findById(orderId);
+        
+        // Si no encontramos por orderId, buscamos por mercadoPagoId como fallback
+        if (!order) {
+            order = await Order.findOne({ mercadoPagoId });
+        }
+        
+        if (!order) {
+            return res.status(404).json({ 
+                message: 'Orden no encontrada',
+                details: `OrderId: ${orderId}, MercadoPagoId: ${mercadoPagoId}`
+            });
+        }
 
-        if (paymentStatus === 'approved') {
-            await descontarStock(order);
-            order.status = 'pagada';
+        // Actualizamos el mercadoPagoId si no lo teníamos
+        if (!order.mercadoPagoId && mercadoPagoId) {
+            order.mercadoPagoId = mercadoPagoId;
+        }
+
+        if (paymentStatus === 'approved' && order.status !== 'pagada') {
+            try {
+                await descontarStock(order);
+                order.status = 'pagada';
+            } catch (stockError) {
+                console.error('Error al descontar stock:', stockError);
+                return res.status(400).json({ 
+                    error: 'Error al descontar stock', 
+                    message: stockError.message 
+                });
+            }
         } else if (paymentStatus === 'rejected') {
             order.status = 'rechazada';
-        } else {
+        } else if (order.status !== 'pagada') { // No cambiar estado si ya está pagada
             order.status = 'pendiente';
         }
 
         await order.save();
-        res.status(200).json({ message: `Orden actualizada a ${order.status}`, order });
+        res.status(200).json({ 
+            message: `Orden actualizada a ${order.status}`, 
+            order 
+        });
     } catch (error) {
         console.error('Error al actualizar estado desde MP:', error);
         res.status(500).json({ error: 'Error al actualizar estado desde MP' });
