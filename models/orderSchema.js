@@ -10,14 +10,17 @@ const orderSchema = new mongoose.Schema({
     referencia: { type: String, required: false },
     cartItems: [
         {
+            _id: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID del producto para stock
             name: { type: String, required: true },
             quantity: { type: Number, required: true },
             precio: { type: Number, required: true }
         }
     ],
-    
     total: { type: Number, required: true },
-    costoEnvio:{type: Number, require:true},
+    costoEnvio: { type: Number, required: true },
+    
+    mercadoPagoId: { type: String }, // Para relacionar con Mercado Pago
+    status: { type: String, enum: ['pendiente', 'pagada', 'rechazada'], default: 'pendiente' },
     date: { type: Date, default: Date.now }
 });
 

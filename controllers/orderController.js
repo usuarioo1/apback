@@ -1,19 +1,24 @@
 const Order = require('../models/orderSchema');
-const Anillos = require('../models/anillosSchema'); // Asegúrate de importar tu modelo de anillos
-const Aros = require('../models/arosSchema')
-const Colgantes = require('../models/colganteSchema')
-const Collares = require('../models/collaresSchema')
-const Conjuntos = require('../models/conjuntosSchema')
-const Figuras = require('../models/figurasSchema')
-const Pulseras = require('../models/pulserasSchema')
-const Cadenas = require('../models/cadenasSchema')
+const Anillos = require('../models/anillosSchema');
+const Aros = require('../models/arosSchema');
+const Colgantes = require('../models/colganteSchema');
+const Collares = require('../models/collaresSchema');
+const Conjuntos = require('../models/conjuntosSchema');
+const Figuras = require('../models/figurasSchema');
+const Pulseras = require('../models/pulserasSchema');
+const Cadenas = require('../models/cadenasSchema');
 
-// Controlador para guardar una nueva orden
+// =========================
+// GUARDAR ORDEN (sin descontar stock)
+// =========================
 const saveOrder = async (req, res) => {
-    const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total, costoEnvio } = req.body;
+    const { 
+        nombre, email, telefono, rut, region, direccion, referencia, 
+        cartItems, total, costoEnvio, mercadoPagoId 
+    } = req.body;
 
     try {
-        // Crear nueva orden
+        // Crear nueva orden con estado "pendiente" y guardar mercadoPagoId
         const newOrder = new Order({
             nombre,
             email,
@@ -24,172 +29,119 @@ const saveOrder = async (req, res) => {
             referencia,
             cartItems,
             total,
-            costoEnvio
+            costoEnvio,
+            mercadoPagoId,
+            status: "pendiente"
         });
 
-        // Reducir el stock de los anillos en el carrito
-        // Procesar anillos
-        for (const item of cartItems) {
-            const anillo = await Anillos.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (anillo) {
-                // Verificar que haya suficiente stock
-                if (anillo.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para la oferta ${anillo.name}` });
-                }
-
-                // Reducir el stock
-                anillo.stock -= item.quantity;
-                await anillo.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar aros
-        for (const item of cartItems) {
-            const aro = await Aros.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (aro) {
-                // Verificar que haya suficiente stock
-                if (aro.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para el aro ${aro.name}` });
-                }
-
-                // Reducir el stock
-                aro.stock -= item.quantity;
-                await aro.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar colgantes
-        for (const item of cartItems) {
-            const colgante = await Colgantes.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (colgante) {
-                // Verificar que haya suficiente stock
-                if (colgante.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para el colgante ${colgante.name}` });
-                }
-
-                // Reducir el stock
-                colgante.stock -= item.quantity;
-                await colgante.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar collares
-        for (const item of cartItems) {
-            const collar = await Collares.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (collar) {
-                // Verificar que haya suficiente stock
-                if (collar.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para el collar ${collar.name}` });
-                }
-
-                // Reducir el stock
-                collar.stock -= item.quantity;
-                await collar.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar conjuntos
-        for (const item of cartItems) {
-            const conjunto = await Conjuntos.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (conjunto) {
-                // Verificar que haya suficiente stock
-                if (conjunto.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para el conjunto ${conjunto.name}` });
-                }
-
-                // Reducir el stock
-                conjunto.stock -= item.quantity;
-                await conjunto.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar figuras
-        for (const item of cartItems) {
-            const figura = await Figuras.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (figura) {
-                // Verificar que haya suficiente stock
-                if (figura.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para la figura ${figura.name}` });
-                }
-
-                // Reducir el stock
-                figura.stock -= item.quantity;
-                await figura.save(); // Guardar el nuevo stock
-            }
-        }
-
-        // Procesar pulseras
-        for (const item of cartItems) {
-            const pulsera = await Pulseras.findById(item._id); // Suponiendo que cada item tiene _id y quantity
-
-            if (pulsera) {
-                // Verificar que haya suficiente stock
-                if (pulsera.stock < item.quantity) {
-                    return res.status(400).json({ error: `No hay suficiente stock para la pulsera ${pulsera.name}` });
-                }
-
-                // Reducir el stock
-                pulsera.stock -= item.quantity;
-                await pulsera.save(); // Guardar el nuevo stock
-            }
-        }
-
-        //procesar cadenas
-
-        for(const item of cartItems){
-            const cadena = await Cadenas.findById(item._id);
-
-            if(cadena){
-                if(cadena.stock < item.quantity){
-                    return res.status(400).json({error: `no hay suficiente stock para cadena ${cadena.name}`})
-                }
-
-                //reduce stock
-                cadena.stock -= item.quantity;
-                await cadena.save();
-            }
-        }
-
-
-        // Guardar la nueva orden en la base de datos
         await newOrder.save();
 
-        res.status(200).json({ message: 'Orden guardada exitosamente', order: newOrder });
+        res.status(200).json({ message: 'Orden creada exitosamente (pendiente de pago)', order: newOrder });
     } catch (error) {
         console.error('Error al guardar la orden:', error);
         res.status(500).json({ error: 'Error al guardar la orden' });
     }
 };
 
-// Controlador para obtener todas las órdenes
+// =========================
+// CONFIRMAR ORDEN Y DESCONTAR STOCK (manual)
+// =========================
+const confirmOrderAndReduceStock = async (req, res) => {
+    const { id } = req.params;
+
+    try {
+        const order = await Order.findById(id);
+        if (!order) return res.status(404).json({ message: 'Orden no encontrada' });
+        if (order.status === "pagada") return res.status(400).json({ message: 'La orden ya fue confirmada y pagada' });
+
+        await descontarStock(order);
+        order.status = "pagada";
+        await order.save();
+
+        res.status(200).json({ message: 'Orden confirmada y stock descontado', order });
+    } catch (error) {
+        console.error('Error al confirmar la orden:', error);
+        res.status(500).json({ error: 'Error al confirmar la orden' });
+    }
+};
+
+// =========================
+// ACTUALIZAR ORDEN DESDE WEBHOOK MP
+// =========================
+const updateOrderStatusFromMP = async (req, res) => {
+    const { mercadoPagoId, paymentStatus } = req.body;
+
+    try {
+        const order = await Order.findOne({ mercadoPagoId });
+        if (!order) return res.status(404).json({ message: 'Orden no encontrada con ese mercadoPagoId' });
+
+        if (paymentStatus === 'approved') {
+            await descontarStock(order);
+            order.status = 'pagada';
+        } else if (paymentStatus === 'rejected') {
+            order.status = 'rechazada';
+        } else {
+            order.status = 'pendiente';
+        }
+
+        await order.save();
+        res.status(200).json({ message: `Orden actualizada a ${order.status}`, order });
+    } catch (error) {
+        console.error('Error al actualizar estado desde MP:', error);
+        res.status(500).json({ error: 'Error al actualizar estado desde MP' });
+    }
+};
+
+// =========================
+// Función auxiliar para descontar stock
+// =========================
+const descontarStock = async (order) => {
+    for (const item of order.cartItems) {
+        const modelos = [
+            { model: Anillos, nombre: 'anillo' },
+            { model: Aros, nombre: 'aro' },
+            { model: Colgantes, nombre: 'colgante' },
+            { model: Collares, nombre: 'collar' },
+            { model: Conjuntos, nombre: 'conjunto' },
+            { model: Figuras, nombre: 'figura' },
+            { model: Pulseras, nombre: 'pulsera' },
+            { model: Cadenas, nombre: 'cadena' }
+        ];
+
+        for (const { model, nombre } of modelos) {
+            const producto = await model.findById(item._id);
+            if (producto) {
+                if (producto.stock < item.quantity) {
+                    throw new Error(`No hay suficiente stock para ${nombre} ${producto.name}`);
+                }
+                producto.stock -= item.quantity;
+                await producto.save();
+            }
+        }
+    }
+};
+
+// =========================
+// OBTENER TODAS LAS ÓRDENES
+// =========================
 const getAllOrders = async (req, res) => {
     try {
         const orders = await Order.find();
-        res.status(200).json({
-            message: 'Órdenes',
-            info: orders
-        });
+        res.status(200).json({ message: 'Órdenes', info: orders });
     } catch (error) {
         console.error('Error al obtener las órdenes:', error);
         res.status(500).json({ error: 'Error al obtener las órdenes' });
     }
 };
 
-// Controlador para obtener una orden por ID
+// =========================
+// OBTENER ORDEN POR ID
+// =========================
 const getOrderById = async (req, res) => {
     const { id } = req.params;
-
     try {
         const order = await Order.findById(id);
-        if (!order) {
-            return res.status(404).json({ message: 'Orden no encontrada' });
-        }
+        if (!order) return res.status(404).json({ message: 'Orden no encontrada' });
         res.status(200).json(order);
     } catch (error) {
         console.error('Error al obtener la orden:', error);
@@ -197,27 +149,19 @@ const getOrderById = async (req, res) => {
     }
 };
 
-// Controlador para actualizar una orden
+// =========================
+// ACTUALIZAR ORDEN
+// =========================
 const updateOrder = async (req, res) => {
     const { id } = req.params;
     const { nombre, email, telefono, rut, region, direccion, referencia, cartItems, total } = req.body;
 
     try {
         const updatedOrder = await Order.findByIdAndUpdate(id, {
-            nombre,
-            email,
-            telefono,
-            rut,
-            region,
-            direccion,
-            referencia,
-            cartItems,
-            total
+            nombre, email, telefono, rut, region, direccion, referencia, cartItems, total
         }, { new: true });
 
-        if (!updatedOrder) {
-            return res.status(404).json({ message: 'Orden no encontrada' });
-        }
+        if (!updatedOrder) return res.status(404).json({ message: 'Orden no encontrada' });
         res.status(200).json({ message: 'Orden actualizada exitosamente', order: updatedOrder });
     } catch (error) {
         console.error('Error al actualizar la orden:', error);
@@ -225,15 +169,14 @@ const updateOrder = async (req, res) => {
     }
 };
 
-// Controlador para eliminar una orden
+// =========================
+// ELIMINAR ORDEN
+// =========================
 const deleteOrder = async (req, res) => {
     const { id } = req.params;
-
     try {
         const deletedOrder = await Order.findByIdAndDelete(id);
-        if (!deletedOrder) {
-            return res.status(404).json({ message: 'Orden no encontrada' });
-        }
+        if (!deletedOrder) return res.status(404).json({ message: 'Orden no encontrada' });
         res.status(200).json({ message: 'Orden eliminada exitosamente' });
     } catch (error) {
         console.error('Error al eliminar la orden:', error);
@@ -243,8 +186,10 @@ const deleteOrder = async (req, res) => {
 
 module.exports = {
     saveOrder,
+    confirmOrderAndReduceStock,
     getAllOrders,
     getOrderById,
     updateOrder,
-    deleteOrder
+    deleteOrder,
+    updateOrderStatusFromMP
 };

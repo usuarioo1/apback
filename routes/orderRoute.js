@@ -1,22 +1,31 @@
 const express = require('express');
-
 const { 
     saveOrder, 
     getAllOrders, 
     getOrderById, 
     updateOrder, 
-    deleteOrder 
+    deleteOrder,
+    confirmOrderAndReduceStock,
+    updateOrderStatusFromMP
 } = require('../controllers/orderController');
 
 const orderRoute = express.Router();
 
+// Crear y listar órdenes
 orderRoute.route('/save_order')
-    .get(getAllOrders) // Obtener todas las órdenes
-    .post(saveOrder);  // Crear una nueva orden
+    .get(getAllOrders) 
+    .post(saveOrder);
 
+// Obtener, actualizar y eliminar orden por ID
 orderRoute.route('/orders/:id')
-    .get(getOrderById)  // Obtener una orden específica por ID
-    .put(updateOrder)    // Actualizar una orden específica por ID
-    .delete(deleteOrder); // Eliminar una orden específica por ID
+    .get(getOrderById)
+    .put(updateOrder)
+    .delete(deleteOrder);
+
+// Confirmar manualmente y descontar stock
+orderRoute.post('/orders/:id/confirm', confirmOrderAndReduceStock);
+
+// Endpoint para actualizar orden desde webhook de MP
+orderRoute.post('/update_order_status', updateOrderStatusFromMP);
 
 module.exports = orderRoute;
