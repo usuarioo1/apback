@@ -6,7 +6,8 @@ const {
     getPulseraById, 
     updatePulsera, 
     deletePulsera, 
-    reduceStock 
+    reduceStock,
+    subirImagenPulsera
 } = require('../controllers/pulserasController');
 
 const pulserasRoute = express.Router();
@@ -15,12 +16,17 @@ pulserasRoute.route('/pulseras')
     .get(getPulseras)
     .post(createPulsera);
 
+// La ruta de reduceStock debe ir antes de las rutas con parámetros
+pulserasRoute.route('/pulseras/reduceStock')
+    .post(reduceStock);
+
 pulserasRoute.route('/pulseras/:id')
     .get(getPulseraById)
     .put(updatePulsera)
     .delete(deletePulsera);
 
-pulserasRoute.route('/pulseras/reduceStock')
-    .post(reduceStock);
+// Ruta para subir imagen a una pulsera específica
+pulserasRoute.route('/pulseras/:id/imagen')
+    .post(subirImagenPulsera);
 
 module.exports = pulserasRoute;
