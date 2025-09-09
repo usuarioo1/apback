@@ -228,15 +228,44 @@ const deleteCollar = async (req, res) => {
 const reduceStock = async (req, res) => {
     const collaresPurchased = req.body.cartItems;
 
-    try {
-        collaresPurchased.map(async (collar) => {
-            await Collares.findByIdAndUpdate(collar._id, { stock: collar.stock - collar.quantity });
+    if (!Array.isArray(collaresPurchased)) {
+        return res.status(400).json({
+            success: false,
+            message: 'El formato de los datos es incorrecto'
         });
-        res.status(201).json({ success: true, message: 'se ha reducido el stock' });
+    }
+
+    try {
+        // Usar Promise.all para manejar todas las actualizaciones en paralelo
+        await Promise.all(collaresPurchased.map(async (collar) => {
+            if (!collar._id || !collar.quantity || typeof collar.stock !== 'number') {
+                throw new Error('Datos de collar incompletos o inválidos');
+            }
+
+            const updatedCollar = await Collares.findByIdAndUpdate(
+                collar._id,
+                { stock: collar.stock - collar.quantity },
+                { new: true }
+            );
+
+            if (!updatedCollar) {
+                throw new Error(`Collar con ID ${collar._id} no encontrado`);
+            }
+
+            if (updatedCollar.stock < 0) {
+                throw new Error(`Stock insuficiente para el collar ${updatedCollar.name}`);
+            }
+        }));
+
+        res.status(200).json({
+            success: true,
+            message: 'Se ha reducido el stock correctamente'
+        });
     } catch (error) {
-        console.error(error);
+        console.error('Error al reducir stock:', error);
         res.status(500).json({
-            success: false, message: error.message
+            success: false,
+            message: error.message || 'Error al reducir el stock'
         });
     }
 }
