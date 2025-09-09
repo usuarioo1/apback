@@ -6,7 +6,8 @@ const {
     getConjuntoById, 
     updateConjunto, 
     deleteConjunto, 
-    reduceStock 
+    reduceStock,
+    subirImagenConjunto 
 } = require('../controllers/conjuntosController');
 
 const conjuntosRoute = express.Router();
@@ -19,6 +20,11 @@ conjuntosRoute.route('/conjuntos/:id')
     .get(getConjuntoById)
     .put(updateConjunto)
     .delete(deleteConjunto);
+
+// Ruta para subir imagen a un conjunto específico
+conjuntosRoute.route('/conjuntos/:id/imagen')
+    .post(subirImagenConjunto);
+    
 
 conjuntosRoute.route('/conjuntos/reduceStock')
     .post(reduceStock);

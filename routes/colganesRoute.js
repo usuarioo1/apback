@@ -6,7 +6,8 @@ const {
     getColganteById, 
     updateColgante, 
     deleteColgante, 
-    reduceStock 
+    reduceStock,
+    subirImagenColgante
 } = require('../controllers/colgantesController');
 
 const colgantesRoute = express.Router();
@@ -19,6 +20,10 @@ colgantesRoute.route('/colgantes/:id')
     .get(getColganteById)
     .put(updateColgante)
     .delete(deleteColgante);
+
+// Ruta para subir imagen a un colgante específico
+colgantesRoute.route('/colgantes/:id/imagen')
+    .post(subirImagenColgante);
 
 colgantesRoute.route('/colgantes/reduceStock')
     .post(reduceStock);

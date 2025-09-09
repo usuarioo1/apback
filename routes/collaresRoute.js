@@ -6,7 +6,8 @@ const {
     getCollarById, 
     updateCollar, 
     deleteCollar, 
-    reduceStock 
+    reduceStock,
+    subirImagenCollar
 } = require('../controllers/collaresController');
 
 const collaresRoute = express.Router();
@@ -19,6 +20,10 @@ collaresRoute.route('/collares/:id')
     .get(getCollarById)
     .put(updateCollar)
     .delete(deleteCollar);
+
+// Ruta para subir imagen a un collar específico
+collaresRoute.route('/collares/:id/imagen')
+    .post(subirImagenCollar);
 
 collaresRoute.route('/collares/reduceStock')
     .post(reduceStock);
