@@ -15,7 +15,7 @@ const orderSchema = new mongoose.Schema({
             _id: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID del producto para stock
             name: { type: String, required: true },
             codigo: { type: String, required: false },
-            image: { type: String, required: false },
+            img: { type: String, required: false },
             quantity: { type: Number, required: true },
             precio: { type: Number, required: true }
         }
