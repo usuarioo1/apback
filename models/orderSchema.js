@@ -7,6 +7,7 @@ const orderSchema = new mongoose.Schema({
     telefono: { type: String, required: false },
     rut: { type: String, required: true },
     region: { type: String, required: true },
+    comuna: { type: String, required: true },
     direccion: { type: String, required: true },
     referencia: { type: String, required: false },
     cartItems: [

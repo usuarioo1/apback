@@ -13,7 +13,7 @@ const Cadenas = require('../models/cadenasSchema');
 // =========================
 const saveOrder = async (req, res) => {
     const { 
-        nombre, email, telefono, rut, region, direccion, referencia, 
+        nombre, email, telefono, rut, region, comuna, direccion, referencia, 
         cartItems, total, costoEnvio, mercadoPagoId 
     } = req.body;
 
@@ -25,6 +25,7 @@ const saveOrder = async (req, res) => {
             telefono,
             rut,
             region,
+            comuna,
             direccion,
             referencia,
             cartItems,
