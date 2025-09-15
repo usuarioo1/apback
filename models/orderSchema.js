@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const { image } = require('../config/cloudinary');
 
 const orderSchema = new mongoose.Schema({
     nombre: { type: String, required: true },
@@ -12,6 +13,8 @@ const orderSchema = new mongoose.Schema({
         {
             _id: { type: mongoose.Schema.Types.ObjectId, required: true }, // ID del producto para stock
             name: { type: String, required: true },
+            codigo: { type: String, required: false },
+            image: { type: String, required: false },
             quantity: { type: Number, required: true },
             precio: { type: Number, required: true }
         }
