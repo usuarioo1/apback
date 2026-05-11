@@ -118,7 +118,7 @@ const createCadena = async (req, res) => {
             }
 
             // Validar campos requeridos
-            const { name, descripcion, precio, codigo, stock } = req.body;
+            const { name, descripcion, precio, precio_por_mayor, codigo, stock } = req.body;
             if (!name || !descripcion || !precio || !codigo || !stock) {
                 // Eliminar archivo temporal si existe
                 if (req.file.path && fs.existsSync(req.file.path)) {
@@ -142,6 +142,7 @@ const createCadena = async (req, res) => {
                 name,
                 descripcion,
                 precio: Number(precio),
+                precio_por_mayor: precio_por_mayor !== undefined && precio_por_mayor !== "" ? Number(precio_por_mayor) : undefined,
                 codigo,
                 stock: Number(stock),
                 img: cloudinaryResult.secure_url
