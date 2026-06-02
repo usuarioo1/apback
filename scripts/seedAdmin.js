@@ -18,25 +18,30 @@ async function seed() {
     await mongoose.connect(MONGODB);
     console.log('Conectado a MongoDB');
 
+    const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10);
+
     const existe = await User.findOne({ email: ADMIN_EMAIL });
     if (existe) {
-        console.log(`Ya existe un usuario con email ${ADMIN_EMAIL} (rol: ${existe.role}). Nada que hacer.`);
-        await mongoose.disconnect();
-        return;
+        existe.password = hashed;
+        if (ADMIN_USERNAME) existe.username = ADMIN_USERNAME;
+        if (ADMIN_REGION) existe.region = ADMIN_REGION;
+        existe.role = 'admin';
+        await existe.save();
+        console.log(`Admin existente actualizado: ${ADMIN_EMAIL}`);
+        console.log(`Username: ${existe.username} | Rol: ${existe.role}`);
+    } else {
+        const admin = new User({
+            username: ADMIN_USERNAME,
+            name: 'Administrador',
+            email: ADMIN_EMAIL,
+            password: hashed,
+            region: ADMIN_REGION || 'Chile',
+            role: 'admin'
+        });
+        await admin.save();
+        console.log(`Admin creado: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
     }
-
-    const hashed = await bcrypt.hash(ADMIN_PASSWORD, 10);
-    const admin = new User({
-        username: ADMIN_USERNAME,
-        name: 'Administrador',
-        email: ADMIN_EMAIL,
-        password: hashed,
-        region: ADMIN_REGION || 'Chile',
-        role: 'admin'
-    });
-    await admin.save();
-    console.log(`Admin creado: ${ADMIN_EMAIL} / ${ADMIN_PASSWORD}`);
-    console.log('IMPORTANTE: cambia la password en produccion.');
+    console.log('Password sincronizada con ADMIN_PASSWORD del .env.');
 
     await mongoose.disconnect();
 }
