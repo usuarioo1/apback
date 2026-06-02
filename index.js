@@ -28,7 +28,7 @@ app.use(express.json());
 dotenv.config();
 // coneccion a la base de datos
 bdconection();
-// rutas 
+// rutas
 app.use(arosRoute);
 app.use(colgantesRoute)
 app.use(pulserasRoute)

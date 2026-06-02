@@ -11,34 +11,29 @@ const {
     subirImagenProducto,
     descontarStockMasivo
 } = require('../controllers/ProductosPuntoDeVentaController');
+const { verifyToken, requireAdmin } = require('../middleware/auth');
 
-// ✅ RUTAS ESPECÍFICAS PRIMERO (antes que las rutas con parámetros)
+ProductoPuntoDeVentaRouter.use(verifyToken);
 
-// Ruta para descuento masivo de stock
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/descontarStockMasivo')
-    .put(descontarStockMasivo);
+    .put(requireAdmin, descontarStockMasivo);
 
-// Ruta para carga masiva de imágenes
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/cargaMasiva/imagenes')
-    .post(cargarImagenesMasiva);
+    .post(requireAdmin, cargarImagenesMasiva);
 
-// ✅ RUTAS BÁSICAS CRUD
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta')
     .get(obtenerProductosPuntoDeVenta)
-    .post(crearProductoPuntoDeVenta);
+    .post(requireAdmin, crearProductoPuntoDeVenta);
 
-// ✅ RUTAS CON PARÁMETROS AL FINAL (después de las rutas específicas)
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id')
     .get(obtenerProductoPuntoDeVentaPorId)
-    .put(actualizarProductoPuntoDeVenta)
-    .delete(eliminarProductoPuntoDeVenta);
+    .put(requireAdmin, actualizarProductoPuntoDeVenta)
+    .delete(requireAdmin, eliminarProductoPuntoDeVenta);
 
-// Ruta para reducir stock individual
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id/reduceStock')
-    .put(reducirStockProductoPuntoDeVenta);
+    .put(requireAdmin, reducirStockProductoPuntoDeVenta);
 
-// Ruta para subir una imagen individual a un producto específico
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/:id/subirImagen')
-    .post(subirImagenProducto);
+    .post(requireAdmin, subirImagenProducto);
 
 module.exports = ProductoPuntoDeVentaRouter;
