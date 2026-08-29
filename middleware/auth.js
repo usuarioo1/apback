@@ -1,4 +1,7 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/userSchema');
+
+const POS_ONLY_USERS = new Set(['vilmaalfaro@apback.local']);
 
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -22,4 +25,29 @@ const requireAdmin = (req, res, next) => {
     next();
 };
 
-module.exports = { verifyToken, requireAdmin };
+const requireSalesAccess = async (req, res, next) => {
+    if (!req.user) {
+        return res.status(403).json({ success: false, message: 'Acceso denegado' });
+    }
+
+    if (req.user.role === 'admin') {
+        next();
+        return;
+    }
+
+    try {
+        const currentUser = await User.findById(req.user.id).select('email');
+
+        if (currentUser && POS_ONLY_USERS.has(String(currentUser.email || '').trim().toLowerCase())) {
+            next();
+            return;
+        }
+
+        return res.status(403).json({ success: false, message: 'Acceso denegado: sin permisos para registrar ventas' });
+    } catch (error) {
+        console.error('Error validando permisos de venta:', error);
+        return res.status(500).json({ success: false, message: 'No se pudieron validar los permisos del usuario' });
+    }
+};
+
+module.exports = { verifyToken, requireAdmin, requireSalesAccess };
