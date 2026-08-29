@@ -13,7 +13,8 @@ const productoPuntoDeVentaSchema = new mongoose.Schema({
     importado: { type: String, required: false },
     tipo_de_joya: { type: String, required: false },
     codigo_de_barras: { type: String, required: false, unique: true },
-    stock: { type: Number, required: false },
+    stock: { type: Number, required: false, default: 0 },
+    stock_tienda: { type: Number, required: false, default: 0 },
     imagen: { type: String, required: false },
     caja: { type: String, required: false },
     date: { type: Date, default: Date.now }

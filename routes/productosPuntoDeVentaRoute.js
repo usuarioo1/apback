@@ -9,11 +9,15 @@ const {
     reducirStockProductoPuntoDeVenta,
     cargarImagenesMasiva,
     subirImagenProducto,
-    descontarStockMasivo
+    descontarStockMasivo,
+    abastecerStockTienda
 } = require('../controllers/ProductosPuntoDeVentaController');
 const { verifyToken, requireAdmin } = require('../middleware/auth');
 
 ProductoPuntoDeVentaRouter.use(verifyToken);
+
+ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/abastecerTienda')
+    .put(requireAdmin, abastecerStockTienda);
 
 ProductoPuntoDeVentaRouter.route('/productosPuntoDeVenta/descontarStockMasivo')
     .put(requireAdmin, descontarStockMasivo);

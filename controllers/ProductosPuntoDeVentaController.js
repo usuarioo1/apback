@@ -22,6 +22,29 @@ const storage = multer.diskStorage({
 const upload = multer({ storage }).array('images', 50);
 const uploadSingle = multer({ storage }).single('imagen');
 
+const stockComoNumero = (valor) => {
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : 0;
+};
+
+const cantidadPositiva = (valor) => {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || numero <= 0) {
+        return null;
+    }
+    return numero;
+};
+
+const stockTiendaEnBody = (body) => {
+    if (Object.prototype.hasOwnProperty.call(body, 'stock_tienda')) {
+        return body.stock_tienda;
+    }
+    if (Object.prototype.hasOwnProperty.call(body, 'stockTienda')) {
+        return body.stockTienda;
+    }
+    return undefined;
+};
+
 // Función para manejar la carga de una imagen individual para un producto específico
 const subirImagenProducto = async (req, res) => {
     uploadSingle(req, res, async function (err) {
@@ -190,6 +213,7 @@ const cargarImagenesMasiva = async (req, res) => {
 const crearProductoPuntoDeVenta = async (req, res) => {
     try {
         const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen, caja } = req.body;
+        const stock_tienda = stockTiendaEnBody(req.body);
 
         const nuevoProducto = new ProductoPuntoDeVenta({
             nombre,
@@ -204,7 +228,8 @@ const crearProductoPuntoDeVenta = async (req, res) => {
             importado,
             tipo_de_joya,
             codigo_de_barras: codigo_de_barras, // Asegúrate de que el nombre coincida con el esquema
-            stock,
+            stock: stockComoNumero(stock),
+            stock_tienda: stockComoNumero(stock_tienda),
             imagen,
             caja
         });
@@ -242,10 +267,35 @@ const obtenerProductoPuntoDeVentaPorId = async (req, res) => {
 const actualizarProductoPuntoDeVenta = async (req, res) => {
     try {
         const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen, caja } = req.body;
+        const datosActualizados = {
+            nombre,
+            costo,
+            tarifa_publica,
+            mayorista,
+            preferentes,
+            interno,
+            metal,
+            prod_nac_imp,
+            taller_externa,
+            importado,
+            tipo_de_joya,
+            codigo_de_barras: codigo_de_barras,
+            imagen,
+            caja
+        };
+
+        if (Object.prototype.hasOwnProperty.call(req.body, 'stock')) {
+            datosActualizados.stock = stockComoNumero(stock);
+        }
+
+        const stock_tienda = stockTiendaEnBody(req.body);
+        if (stock_tienda !== undefined) {
+            datosActualizados.stock_tienda = stockComoNumero(stock_tienda);
+        }
 
         const productoActualizado = await ProductoPuntoDeVenta.findByIdAndUpdate(
             req.params.id,
-            { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras: codigo_de_barras, stock, imagen, caja },
+            datosActualizados,
             { new: true }
         );
 
@@ -269,19 +319,25 @@ const eliminarProductoPuntoDeVenta = async (req, res) => {
     }
 };
 
-// Reducir stock de un producto
+// Reducir stock de bodega de un producto
 const reducirStockProductoPuntoDeVenta = async (req, res) => {
     try {
-        const { cantidad } = req.body;
+        const cantidad = cantidadPositiva(req.body.cantidad);
         const producto = await ProductoPuntoDeVenta.findById(req.params.id);
+
+        if (!cantidad) {
+            return res.status(400).json({ error: "Cantidad inválida" });
+        }
 
         if (!producto) return res.status(404).json({ error: "Producto no encontrado" });
 
-        if (producto.stock < cantidad) {
-            return res.status(400).json({ error: "Stock insuficiente" });
+        const stockActual = stockComoNumero(producto.stock);
+
+        if (stockActual < cantidad) {
+            return res.status(400).json({ error: "Stock de bodega insuficiente" });
         }
 
-        producto.stock -= cantidad;
+        producto.stock = stockActual - cantidad;
         await producto.save();
 
         res.status(200).json({ mensaje: "Stock actualizado correctamente", producto });
@@ -306,9 +362,10 @@ const descontarStockMasivo = async (req, res) => {
         // Procesar cada producto
         for (const item of productos) {
             try {
-                const { id, cantidad } = item;
+                const { id } = item;
+                const cantidad = cantidadPositiva(item.cantidad);
                 
-                if (!id || !cantidad || cantidad <= 0) {
+                if (!id || !cantidad) {
                     errores.push({
                         id: id || 'ID no proporcionado',
                         error: 'ID o cantidad inválidos'
@@ -326,24 +383,25 @@ const descontarStockMasivo = async (req, res) => {
                     continue;
                 }
 
-                if (producto.stock < cantidad) {
+                const stockAnterior = stockComoNumero(producto.stock);
+
+                if (stockAnterior < cantidad) {
                     errores.push({
                         id,
                         nombre: producto.nombre,
-                        error: `Stock insuficiente. Stock actual: ${producto.stock}, cantidad solicitada: ${cantidad}`
+                        error: `Stock de bodega insuficiente. Stock actual: ${stockAnterior}, cantidad solicitada: ${cantidad}`
                     });
                     continue;
                 }
 
-                // Actualizar stock
-                producto.stock -= cantidad;
+                producto.stock = stockAnterior - cantidad;
                 await producto.save();
 
                 resultados.push({
                     id,
                     nombre: producto.nombre,
                     cantidadDescontada: cantidad,
-                    stockAnterior: producto.stock + cantidad,
+                    stockAnterior,
                     stockActual: producto.stock
                 });
 
@@ -372,6 +430,91 @@ const descontarStockMasivo = async (req, res) => {
     }
 };
 
+const abastecerStockTienda = async (req, res) => {
+    try {
+        const { productos } = req.body;
+
+        if (!productos || !Array.isArray(productos) || productos.length === 0) {
+            return res.status(400).json({
+                error: "Se requiere un array de productos con id y cantidad"
+            });
+        }
+
+        const resultados = [];
+        const errores = [];
+
+        for (const item of productos) {
+            try {
+                const { id } = item;
+                const cantidad = cantidadPositiva(item.cantidad);
+
+                if (!id || !cantidad) {
+                    errores.push({
+                        id: id || 'ID no proporcionado',
+                        error: 'ID o cantidad inválidos'
+                    });
+                    continue;
+                }
+
+                const producto = await ProductoPuntoDeVenta.findById(id);
+
+                if (!producto) {
+                    errores.push({
+                        id,
+                        error: 'Producto no encontrado'
+                    });
+                    continue;
+                }
+
+                const stockBodegaAnterior = stockComoNumero(producto.stock);
+                const stockTiendaAnterior = stockComoNumero(producto.stock_tienda);
+
+                if (stockBodegaAnterior < cantidad) {
+                    errores.push({
+                        id,
+                        nombre: producto.nombre,
+                        error: `Stock de bodega insuficiente. Stock actual: ${stockBodegaAnterior}, cantidad solicitada: ${cantidad}`
+                    });
+                    continue;
+                }
+
+                producto.stock = stockBodegaAnterior - cantidad;
+                producto.stock_tienda = stockTiendaAnterior + cantidad;
+                await producto.save();
+
+                resultados.push({
+                    id,
+                    nombre: producto.nombre,
+                    cantidadTransferida: cantidad,
+                    stockBodegaAnterior,
+                    stockBodegaActual: producto.stock,
+                    stockTiendaAnterior,
+                    stockTiendaActual: producto.stock_tienda
+                });
+            } catch (error) {
+                errores.push({
+                    id: item.id || 'ID no disponible',
+                    error: error.message
+                });
+            }
+        }
+
+        res.status(200).json({
+            mensaje: "Proceso de abastecimiento de tienda completado",
+            exitosos: resultados,
+            errores,
+            totalProcesados: productos.length,
+            totalExitosos: resultados.length,
+            totalErrores: errores.length
+        });
+    } catch (error) {
+        res.status(500).json({
+            error: "Error al abastecer el stock de tienda",
+            detalle: error.message
+        });
+    }
+};
+
 module.exports = {
     crearProductoPuntoDeVenta,
     obtenerProductosPuntoDeVenta,
@@ -381,5 +524,6 @@ module.exports = {
     reducirStockProductoPuntoDeVenta,
     cargarImagenesMasiva,
     subirImagenProducto,
-    descontarStockMasivo
+    descontarStockMasivo,
+    abastecerStockTienda
 };

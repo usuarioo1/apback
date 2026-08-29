@@ -1,4 +1,18 @@
 const Venta = require('../models/ventaSchema');
+const ProductoPuntoDeVenta = require('../models/productoPuntoDeVentaSchema');
+
+const stockComoNumero = (valor) => {
+    const numero = Number(valor);
+    return Number.isFinite(numero) ? numero : 0;
+};
+
+const cantidadPositiva = (valor) => {
+    const numero = Number(valor);
+    if (!Number.isFinite(numero) || numero <= 0) {
+        return null;
+    }
+    return numero;
+};
 
 const registrarVenta = async (req, res) => {
     try {
@@ -7,7 +21,50 @@ const registrarVenta = async (req, res) => {
         const { productos, total } = req.body;
         if (!productos || productos.length === 0) return res.status(400).json({ error: "No hay productos en la venta" });
 
+        const cantidadesPorProducto = new Map();
+
+        for (const item of productos) {
+            const productoId = String(item?.producto || '').trim();
+            const cantidad = cantidadPositiva(item?.cantidad);
+
+            if (!productoId || !cantidad) {
+                return res.status(400).json({ error: "Cada producto debe incluir un id y una cantidad válida" });
+            }
+
+            cantidadesPorProducto.set(
+                productoId,
+                (cantidadesPorProducto.get(productoId) || 0) + cantidad
+            );
+        }
+
         const nuevaVenta = new Venta({ productos, total });
+        await nuevaVenta.validate();
+
+        const productosActualizados = [];
+
+        for (const [productoId, cantidad] of cantidadesPorProducto.entries()) {
+            const producto = await ProductoPuntoDeVenta.findById(productoId);
+
+            if (!producto) {
+                return res.status(404).json({ error: `Producto no encontrado: ${productoId}` });
+            }
+
+            const stockTiendaActual = stockComoNumero(producto.stock_tienda);
+
+            if (stockTiendaActual < cantidad) {
+                return res.status(400).json({
+                    error: `Stock de tienda insuficiente para ${producto.nombre}. Stock actual: ${stockTiendaActual}, cantidad solicitada: ${cantidad}`
+                });
+            }
+
+            productosActualizados.push({ producto, cantidad, stockTiendaActual });
+        }
+
+        for (const item of productosActualizados) {
+            item.producto.stock_tienda = item.stockTiendaActual - item.cantidad;
+            await item.producto.save();
+        }
+
         await nuevaVenta.save();
 
         res.status(201).json({ mensaje: "Venta registrada con éxito", venta: nuevaVenta });
