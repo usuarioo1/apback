@@ -7,6 +7,7 @@ const Conjuntos = require('../models/conjuntosSchema');
 const Figuras = require('../models/figurasSchema');
 const Pulseras = require('../models/pulserasSchema');
 const Cadenas = require('../models/cadenasSchema');
+const { logResumenDescuentoStock } = require('../utils/logStock');
 
 // =========================
 // GUARDAR ORDEN (sin descontar stock)
@@ -126,6 +127,8 @@ const updateOrderStatusFromMP = async (req, res) => {
 // Función auxiliar para descontar stock
 // =========================
 const descontarStock = async (order) => {
+    const itemsDescontados = [];
+
     for (const item of order.cartItems) {
         const modelos = [
             { model: Anillos, nombre: 'anillo' },
@@ -144,11 +147,20 @@ const descontarStock = async (order) => {
                 if (producto.stock < item.quantity) {
                     throw new Error(`No hay suficiente stock para ${nombre} ${producto.name}`);
                 }
+                const stockAnterior = producto.stock;
                 producto.stock -= item.quantity;
                 await producto.save();
+                itemsDescontados.push({
+                    codigo: producto.codigo,
+                    stockAnterior,
+                    descontado: item.quantity,
+                    restante: producto.stock
+                });
             }
         }
     }
+
+    logResumenDescuentoStock(`Orden ${order._id}`, itemsDescontados);
 };
 
 // =========================

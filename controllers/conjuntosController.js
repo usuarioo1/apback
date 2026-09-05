@@ -1,4 +1,5 @@
 const Conjuntos = require('../models/conjuntosSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -231,7 +232,16 @@ const reduceStock = async (req, res) => {
 
     try {
         conjuntosPurchased.map(async (conjunto) => {
-            await Conjuntos.findByIdAndUpdate(conjunto._id, { stock: conjunto.stock - conjunto.quantity });
+            const conjuntoDescontado = await Conjuntos.findByIdAndUpdate(conjunto._id, { stock: conjunto.stock - conjunto.quantity });
+
+            if (conjuntoDescontado) {
+                logDescuentoStock({
+                    codigo: conjuntoDescontado.codigo,
+                    stockAnterior: conjuntoDescontado.stock,
+                    descontado: conjunto.quantity,
+                    restante: conjunto.stock - conjunto.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {

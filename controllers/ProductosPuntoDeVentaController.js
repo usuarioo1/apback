@@ -1,4 +1,5 @@
 const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
+const { logDescuentoStock, logResumenDescuentoStock } = require("../utils/logStock");
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -340,6 +341,13 @@ const reducirStockProductoPuntoDeVenta = async (req, res) => {
         producto.stock = stockActual - cantidad;
         await producto.save();
 
+        logDescuentoStock({
+            codigo: producto.codigo_de_barras,
+            stockAnterior: stockActual,
+            descontado: cantidad,
+            restante: producto.stock
+        });
+
         res.status(200).json({ mensaje: "Stock actualizado correctamente", producto });
     } catch (error) {
         res.status(500).json({ error: "Error al reducir el stock", detalle: error.message });
@@ -400,6 +408,7 @@ const descontarStockMasivo = async (req, res) => {
                 resultados.push({
                     id,
                     nombre: producto.nombre,
+                    codigo_de_barras: producto.codigo_de_barras,
                     cantidadDescontada: cantidad,
                     stockAnterior,
                     stockActual: producto.stock
@@ -410,6 +419,20 @@ const descontarStockMasivo = async (req, res) => {
                     id: item.id || 'ID no disponible',
                     error: error.message
                 });
+            }
+        }
+
+        logResumenDescuentoStock('Descuento masivo de stock de bodega', resultados.map((r) => ({
+            codigo: r.codigo_de_barras,
+            stockAnterior: r.stockAnterior,
+            descontado: r.cantidadDescontada,
+            restante: r.stockActual
+        })));
+
+        if (errores.length > 0) {
+            console.warn(`[DESCUENTO STOCK] Productos no descontados: ${errores.length}`);
+            for (const errorItem of errores) {
+                console.warn(`  - ${errorItem.id}: ${errorItem.error}`);
             }
         }
 
@@ -485,6 +508,7 @@ const abastecerStockTienda = async (req, res) => {
                 resultados.push({
                     id,
                     nombre: producto.nombre,
+                    codigo_de_barras: producto.codigo_de_barras,
                     cantidadTransferida: cantidad,
                     stockBodegaAnterior,
                     stockBodegaActual: producto.stock,
@@ -498,6 +522,13 @@ const abastecerStockTienda = async (req, res) => {
                 });
             }
         }
+
+        logResumenDescuentoStock('Traslado de bodega a tienda', resultados.map((r) => ({
+            codigo: r.codigo_de_barras,
+            stockAnterior: r.stockBodegaAnterior,
+            descontado: r.cantidadTransferida,
+            restante: r.stockBodegaActual
+        })));
 
         res.status(200).json({
             mensaje: "Proceso de abastecimiento de tienda completado",

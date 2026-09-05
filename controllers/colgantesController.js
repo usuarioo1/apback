@@ -1,4 +1,5 @@
 const Colgantes = require('../models/colganteSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -231,7 +232,16 @@ const reduceStock = async (req, res) => {
 
     try {
         colgantesPurchased.map(async (colgante) => {
-            await Colgantes.findByIdAndUpdate(colgante._id, { stock: colgante.stock - colgante.quantity });
+            const colganteDescontado = await Colgantes.findByIdAndUpdate(colgante._id, { stock: colgante.stock - colgante.quantity });
+
+            if (colganteDescontado) {
+                logDescuentoStock({
+                    codigo: colganteDescontado.codigo,
+                    stockAnterior: colganteDescontado.stock,
+                    descontado: colgante.quantity,
+                    restante: colgante.stock - colgante.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {

@@ -1,4 +1,5 @@
 const Figuras = require('../models/figurasSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 
 const getFiguras = async (req, res) => {
     try {
@@ -51,7 +52,16 @@ const reduceStock = async (req, res) => {
 
     try {
         figurasPurchased.map(async (figura) => {
-            await Figuras.findByIdAndUpdate(figura._id, { stock: figura.stock - figura.quantity });
+            const figuraDescontada = await Figuras.findByIdAndUpdate(figura._id, { stock: figura.stock - figura.quantity });
+
+            if (figuraDescontada) {
+                logDescuentoStock({
+                    codigo: figuraDescontada.codigo,
+                    stockAnterior: figuraDescontada.stock,
+                    descontado: figura.quantity,
+                    restante: figura.stock - figura.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {

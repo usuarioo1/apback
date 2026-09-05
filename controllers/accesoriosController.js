@@ -1,4 +1,5 @@
 const Accesorios = require('../models/accesoriosSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -252,6 +253,13 @@ const reduceStock = async (req, res) => {
             if (!updatedAccesorio) {
                 throw new Error(`Accesorio con ID ${accesorio._id} no encontrado`);
             }
+
+            logDescuentoStock({
+                codigo: updatedAccesorio.codigo,
+                stockAnterior: updatedAccesorio.stock + accesorio.quantity,
+                descontado: accesorio.quantity,
+                restante: updatedAccesorio.stock
+            });
 
             if (updatedAccesorio.stock < 0) {
                 throw new Error(`Stock insuficiente para el accesorio ${updatedAccesorio.name}`);

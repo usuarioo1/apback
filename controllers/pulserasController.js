@@ -1,4 +1,5 @@
 const Pulseras = require('../models/pulserasSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -252,6 +253,13 @@ const reduceStock = async (req, res) => {
             if (!updatedPulsera) {
                 throw new Error(`Pulsera con ID ${pulsera._id} no encontrada`);
             }
+
+            logDescuentoStock({
+                codigo: updatedPulsera.codigo,
+                stockAnterior: updatedPulsera.stock + pulsera.quantity,
+                descontado: pulsera.quantity,
+                restante: updatedPulsera.stock
+            });
 
             if (updatedPulsera.stock < 0) {
                 throw new Error(`Stock insuficiente para la pulsera ${updatedPulsera.name}`);

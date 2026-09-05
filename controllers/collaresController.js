@@ -1,4 +1,5 @@
 const Collares = require('../models/collaresSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -252,6 +253,13 @@ const reduceStock = async (req, res) => {
             if (!updatedCollar) {
                 throw new Error(`Collar con ID ${collar._id} no encontrado`);
             }
+
+            logDescuentoStock({
+                codigo: updatedCollar.codigo,
+                stockAnterior: updatedCollar.stock + collar.quantity,
+                descontado: collar.quantity,
+                restante: updatedCollar.stock
+            });
 
             if (updatedCollar.stock < 0) {
                 throw new Error(`Stock insuficiente para el collar ${updatedCollar.name}`);

@@ -1,4 +1,5 @@
 const Cadenas = require('../models/cadenasSchema')
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -205,7 +206,16 @@ const reduceStock = async (req, res) => {
 
     try {
         cadenasPurchased.map(async (cadena) => {
-            await Cadenas.findByIdAndUpdate(cadena._id, { stock: cadena.stock - cadena.quantity });
+            const cadenaDescontada = await Cadenas.findByIdAndUpdate(cadena._id, { stock: cadena.stock - cadena.quantity });
+
+            if (cadenaDescontada) {
+                logDescuentoStock({
+                    codigo: cadenaDescontada.codigo,
+                    stockAnterior: cadenaDescontada.stock,
+                    descontado: cadena.quantity,
+                    restante: cadena.stock - cadena.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {

@@ -1,4 +1,5 @@
 const Aros = require('../models/arosSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -231,7 +232,16 @@ const reduceStock = async (req, res) => {
 
     try {
         arosPurchased.map(async (aro) => {
-            await Aros.findByIdAndUpdate(aro._id, { stock: aro.stock - aro.quantity });
+            const aroDescontado = await Aros.findByIdAndUpdate(aro._id, { stock: aro.stock - aro.quantity });
+
+            if (aroDescontado) {
+                logDescuentoStock({
+                    codigo: aroDescontado.codigo,
+                    stockAnterior: aroDescontado.stock,
+                    descontado: aro.quantity,
+                    restante: aro.stock - aro.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {

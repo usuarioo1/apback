@@ -1,5 +1,6 @@
 const Venta = require('../models/ventaSchema');
 const ProductoPuntoDeVenta = require('../models/productoPuntoDeVentaSchema');
+const { logResumenDescuentoStock } = require('../utils/logStock');
 
 const stockComoNumero = (valor) => {
     const numero = Number(valor);
@@ -64,6 +65,13 @@ const registrarVenta = async (req, res) => {
             item.producto.stock_tienda = item.stockTiendaActual - item.cantidad;
             await item.producto.save();
         }
+
+        logResumenDescuentoStock('Venta en tienda (stock_tienda)', productosActualizados.map((item) => ({
+            codigo: item.producto.codigo_de_barras,
+            stockAnterior: item.stockTiendaActual,
+            descontado: item.cantidad,
+            restante: item.producto.stock_tienda
+        })));
 
         await nuevaVenta.save();
 

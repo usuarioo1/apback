@@ -1,4 +1,5 @@
 const Anillos = require('../models/anillosSchema');
+const { logDescuentoStock } = require('../utils/logStock');
 
 const getAnillos = async (req, res) => {
     try {
@@ -59,7 +60,16 @@ const reduceStock = async (req, res) => {
 
     try {
         anillosPurchased.map(async (anillo) => {
-            await Anillos.findByIdAndUpdate(anillo._id, { stock: anillo.stock - anillo.quantity });
+            const anilloDescontado = await Anillos.findByIdAndUpdate(anillo._id, { stock: anillo.stock - anillo.quantity });
+
+            if (anilloDescontado) {
+                logDescuentoStock({
+                    codigo: anilloDescontado.codigo,
+                    stockAnterior: anilloDescontado.stock,
+                    descontado: anillo.quantity,
+                    restante: anillo.stock - anillo.quantity
+                });
+            }
         });
         res.status(201).json({ success: true, message: 'se ha reducido el stock' });
     } catch (error) {
