@@ -1,5 +1,6 @@
 const ProductoPuntoDeVenta = require("../models/productoPuntoDeVentaSchema");
 const { logDescuentoStock, logResumenDescuentoStock } = require("../utils/logStock");
+const { logResumenAbastecimientoTienda } = require("../utils/logAbastecimientoTienda");
 const cloudinary = require("../config/cloudinary");
 const multer = require("multer");
 const fs = require("fs");
@@ -523,12 +524,21 @@ const abastecerStockTienda = async (req, res) => {
             }
         }
 
-        logResumenDescuentoStock('Traslado de bodega a tienda', resultados.map((r) => ({
+        logResumenAbastecimientoTienda('Abastecimiento de stock de tienda', resultados.map((r) => ({
             codigo: r.codigo_de_barras,
-            stockAnterior: r.stockBodegaAnterior,
-            descontado: r.cantidadTransferida,
-            restante: r.stockBodegaActual
+            transferido: r.cantidadTransferida,
+            stockBodegaAnterior: r.stockBodegaAnterior,
+            stockBodegaActual: r.stockBodegaActual,
+            stockTiendaAnterior: r.stockTiendaAnterior,
+            stockTiendaActual: r.stockTiendaActual
         })));
+
+        if (errores.length > 0) {
+            console.warn(`[ABASTECIMIENTO TIENDA] Productos no abastecidos: ${errores.length}`);
+            for (const errorItem of errores) {
+                console.warn(`  - ${errorItem.id}: ${errorItem.error}`);
+            }
+        }
 
         res.status(200).json({
             mensaje: "Proceso de abastecimiento de tienda completado",
