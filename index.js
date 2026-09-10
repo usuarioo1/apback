@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const compression = require('compression');
 const bdconection = require('./config/database')
 const dotenv = require('dotenv');
 const arosRoute = require('./routes/arosRoute');
@@ -24,6 +25,7 @@ const app = express();
 
 // instaciamiento de utilidades
 app.use(cors());
+app.use(compression());
 app.use(express.json());
 dotenv.config();
 // coneccion a la base de datos

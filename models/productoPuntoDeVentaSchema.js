@@ -20,6 +20,10 @@ const productoPuntoDeVentaSchema = new mongoose.Schema({
     date: { type: Date, default: Date.now }
 });
 
+productoPuntoDeVentaSchema.index({ nombre: 1 });
+productoPuntoDeVentaSchema.index({ tipo_de_joya: 1 });
+productoPuntoDeVentaSchema.index({ date: -1 });
+
 const ProductoPuntoDeVenta = mongoose.model('productosPuntoDeVenta', productoPuntoDeVentaSchema);
 
 module.exports = ProductoPuntoDeVenta;

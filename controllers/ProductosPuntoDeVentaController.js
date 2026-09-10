@@ -246,7 +246,29 @@ const crearProductoPuntoDeVenta = async (req, res) => {
 // Obtener todos los productos
 const obtenerProductosPuntoDeVenta = async (req, res) => {
     try {
-        const productos = await ProductoPuntoDeVenta.find();
+        const { sort, limit, skip } = req.query;
+
+        const consulta = ProductoPuntoDeVenta.find()
+            .select('-__v')
+            .lean();
+
+        const camposOrdenValidos = ['nombre', 'codigo_de_barras', 'tipo_de_joya', 'date'];
+        const ordenMatch = String(sort || '').match(/^(-?)([a-z_]+)$/i);
+        if (ordenMatch && camposOrdenValidos.includes(ordenMatch[2])) {
+            consulta.sort({ [ordenMatch[2]]: ordenMatch[1] === '-' ? -1 : 1 });
+        }
+
+        const limite = Number.parseInt(limit, 10);
+        if (Number.isFinite(limite) && limite > 0) {
+            consulta.limit(limite);
+        }
+
+        const salto = Number.parseInt(skip, 10);
+        if (Number.isFinite(salto) && salto > 0) {
+            consulta.skip(salto);
+        }
+
+        const productos = await consulta;
         res.status(200).json({ message: "Lista de productos", productos });
     } catch (error) {
         res.status(500).json({ error: "Error al obtener los productos", detalle: error.message });
