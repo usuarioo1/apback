@@ -47,6 +47,13 @@ const stockTiendaEnBody = (body) => {
     return undefined;
 };
 
+const booleanoEnBody = (body, campo) => {
+    if (Object.prototype.hasOwnProperty.call(body, campo)) {
+        return Boolean(body[campo]);
+    }
+    return undefined;
+};
+
 // Función para manejar la carga de una imagen individual para un producto específico
 const subirImagenProducto = async (req, res) => {
     uploadSingle(req, res, async function (err) {
@@ -216,6 +223,7 @@ const crearProductoPuntoDeVenta = async (req, res) => {
     try {
         const { nombre, costo, tarifa_publica, mayorista, preferentes, interno, metal, prod_nac_imp, taller_externa, importado, tipo_de_joya, codigo_de_barras, stock, imagen, caja } = req.body;
         const stock_tienda = stockTiendaEnBody(req.body);
+        const en_tienda = booleanoEnBody(req.body, 'en_tienda');
 
         const nuevoProducto = new ProductoPuntoDeVenta({
             nombre,
@@ -232,6 +240,7 @@ const crearProductoPuntoDeVenta = async (req, res) => {
             codigo_de_barras: codigo_de_barras, // Asegúrate de que el nombre coincida con el esquema
             stock: stockComoNumero(stock),
             stock_tienda: stockComoNumero(stock_tienda),
+            en_tienda: en_tienda !== undefined ? en_tienda : false,
             imagen,
             caja
         });
@@ -315,6 +324,11 @@ const actualizarProductoPuntoDeVenta = async (req, res) => {
         const stock_tienda = stockTiendaEnBody(req.body);
         if (stock_tienda !== undefined) {
             datosActualizados.stock_tienda = stockComoNumero(stock_tienda);
+        }
+
+        const en_tienda = booleanoEnBody(req.body, 'en_tienda');
+        if (en_tienda !== undefined) {
+            datosActualizados.en_tienda = en_tienda;
         }
 
         const productoActualizado = await ProductoPuntoDeVenta.findByIdAndUpdate(
@@ -526,6 +540,7 @@ const abastecerStockTienda = async (req, res) => {
 
                 producto.stock = stockBodegaAnterior - cantidad;
                 producto.stock_tienda = stockTiendaAnterior + cantidad;
+                producto.en_tienda = true;
                 await producto.save();
 
                 resultados.push({

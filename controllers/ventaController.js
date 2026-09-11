@@ -63,6 +63,9 @@ const registrarVenta = async (req, res) => {
 
         for (const item of productosActualizados) {
             item.producto.stock_tienda = item.stockTiendaActual - item.cantidad;
+            if (!item.producto.en_tienda) {
+                item.producto.en_tienda = true;
+            }
             await item.producto.save();
         }
 

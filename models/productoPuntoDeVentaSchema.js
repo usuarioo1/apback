@@ -15,6 +15,7 @@ const productoPuntoDeVentaSchema = new mongoose.Schema({
     codigo_de_barras: { type: String, required: false, unique: true },
     stock: { type: Number, required: false, default: 0 },
     stock_tienda: { type: Number, required: false, default: 0 },
+    en_tienda: { type: Boolean, required: false, default: false },
     imagen: { type: String, required: false },
     caja: { type: String, required: false },
     date: { type: Date, default: Date.now }
