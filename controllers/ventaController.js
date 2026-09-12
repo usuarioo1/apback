@@ -108,4 +108,16 @@ const obtenerVentaPorId = async (req, res) => {
     }
 };
 
-module.exports = { registrarVenta, obtenerVentas, obtenerVentaPorId };
+const eliminarVenta = async (req, res) => {
+    try {
+        const venta = await Venta.findByIdAndDelete(req.params.id);
+        if (!venta) return res.status(404).json({ error: "Venta no encontrada" });
+
+        res.status(200).json({ mensaje: "Venta eliminada correctamente" });
+    } catch (error) {
+        console.error("Error al eliminar la venta:", error);
+        res.status(500).json({ error: "Error al eliminar la venta" });
+    }
+};
+
+module.exports = { registrarVenta, obtenerVentas, obtenerVentaPorId, eliminarVenta };
