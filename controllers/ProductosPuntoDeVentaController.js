@@ -324,6 +324,10 @@ const actualizarProductoPuntoDeVenta = async (req, res) => {
         const stock_tienda = stockTiendaEnBody(req.body);
         if (stock_tienda !== undefined) {
             datosActualizados.stock_tienda = stockComoNumero(stock_tienda);
+            // Si se asigna stock en tienda, marcar automáticamente como en tienda.
+            if (datosActualizados.stock_tienda > 0) {
+                datosActualizados.en_tienda = true;
+            }
         }
 
         const en_tienda = booleanoEnBody(req.body, 'en_tienda');
